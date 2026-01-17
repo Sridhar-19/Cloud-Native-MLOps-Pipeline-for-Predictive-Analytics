@@ -1,0 +1,115 @@
+# MLOps Pipeline Configuration
+
+# AWS Settings
+aws:
+  region: us-east-1
+  account_id: YOUR_AWS_ACCOUNT_ID
+  
+  # S3 Buckets
+  s3:
+    data_bucket: mlops-pipeline-data-prod
+    model_bucket: mlops-pipeline-models-prod
+    monitoring_bucket: mlops-pipeline-monitoring-prod
+  
+  # SageMaker Settings
+  sagemaker:
+    execution_role_arn: arn:aws:iam::ACCOUNT_ID:role/SageMakerExecutionRole
+    instance_type_training: ml.p3.2xlarge
+    instance_type_inference: ml.m5.xlarge
+    instance_type_processing: ml.m5.xlarge
+    model_registry_name: churn-prediction-models
+  
+  # EKS Settings
+  eks:
+    cluster_name: mlops-eks-cluster
+    node_group_instance_type: c5.xlarge
+    min_nodes: 2
+    max_nodes: 10
+  
+  # Lambda Settings
+  lambda:
+    memory_size: 512
+    timeout: 300
+
+# Model Settings
+model:
+  name: customer-churn-prediction
+  version: 1.0.0
+  framework: tensorflow
+  framework_version: 2.13.0
+  
+  # Training Parameters
+  training:
+    batch_size: 64
+    epochs: 50
+    learning_rate: 0.001
+    validation_split: 0.2
+    early_stopping_patience: 5
+  
+  # Model Architecture
+  architecture:
+    input_features: auto  # Will be determined from data
+    hidden_layers:
+      - units: 128
+        activation: relu
+        dropout: 0.3
+      - units: 64
+        activation: relu
+        dropout: 0.3
+      - units: 32
+        activation: relu
+        dropout: 0.2
+    output_activation: sigmoid
+    optimizer: adam
+    loss: binary_crossentropy
+  
+  # Performance Thresholds
+  performance:
+    min_accuracy: 0.84
+    min_f1_score: 0.79
+    max_training_time_hours: 4
+
+# Data Settings
+data:
+  train_split: 0.7
+  validation_split: 0.15
+  test_split: 0.15
+  random_seed: 42
+  
+  # Feature Engineering
+  features:
+    categorical: []  # Will be populated from data
+    numerical: []
+    target: churn
+
+# Monitoring Settings
+monitoring:
+  enable_model_monitor: true
+  monitoring_schedule: hourly
+  drift_detection:
+    psi_threshold_warning: 0.1
+    psi_threshold_critical: 0.25
+  
+  # CloudWatch Alarms
+  alarms:
+    model_accuracy_threshold: 0.80
+    error_rate_threshold: 0.01
+    latency_p99_threshold_ms: 200
+
+# API Settings
+api:
+  port: 8080
+  host: 0.0.0.0
+  workers: 4
+  timeout: 60
+  max_batch_size: 100
+
+# Deployment Settings
+deployment:
+  strategy: blue_green
+  traffic_shift_percentage: [10, 50, 100]
+  rollback_on_alarm: true
+  min_replicas: 3
+  max_replicas: 20
+  target_cpu_utilization: 70
+  target_memory_utilization: 80
